@@ -1,0 +1,17 @@
+{
+  "name": "web-dashboard-ts",
+  "version": "1.0.0",
+  "description": "Modern Web Dashboard built with TypeScript and React",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "echo \"Running development server...\"",
+    "build": "echo \"Building for production...\"",
+    "test": "echo \"Running tests...\" && exit 0"
+  },
+  "keywords": ["typescript", "react", "dashboard", "frontend", "portfolio"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
