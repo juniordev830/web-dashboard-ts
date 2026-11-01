@@ -18,6 +18,12 @@ export function formatMetric(metric: DashboardMetric): string {
 }
 
 export function calculateSummary(metrics: DashboardMetric[]) {
+  for (const metric of metrics) {
+    if (!Number.isFinite(metric.value)) {
+      throw new RangeError(`Metric "${metric.id}" must have a finite numeric value`);
+    }
+  }
+
   const totalValue = metrics.reduce((acc, curr) => acc + curr.value, 0);
   const warningCount = metrics.filter(m => m.status === 'warning').length;
   const criticalCount = metrics.filter(m => m.status === 'critical').length;
