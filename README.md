@@ -1,6 +1,6 @@
-# Web Dashboard TypeScript
+# Dashboard Metrics Utilities
 
-Projeto de estudo para praticar organização de código TypeScript, compilação, execução de testes e manutenção de um pequeno dashboard/serviço. O repositório atual utiliza TypeScript, ts-node, Jest e TypeScript Compiler; não presume dependências de React que não estejam declaradas no projeto.
+
 
 ## Tecnologias
 
@@ -61,3 +61,6 @@ A implementação em `src/` é a fonte da verdade para os recursos disponíveis.
 - Documentar os módulos exportados e adicionar testes para os casos de erro.
 
 Projeto de portfólio em evolução.
+
+
+> Escopo atual: biblioteca/utilitário TypeScript de linha de comando para formatar e resumir métricas; ainda não inclui uma interface web.
