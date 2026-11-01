@@ -1,6 +1,6 @@
 # Dashboard Metrics Utilities
 
-
+Biblioteca/utilitário TypeScript de linha de comando para formatar e resumir métricas. **O projeto ainda não inclui uma interface web.**
 
 ## Tecnologias
 
@@ -34,18 +34,23 @@ npm run build
 npm test
 ```
 
+## Integração contínua
+
+O GitHub Actions executa `npm ci`, `npm run build` e `npm test` em pushes para `main` e em pull requests direcionados à `main`. O workflow está em `.github/workflows/ci.yml`.
+
 ## Estrutura
 
 ```text
 .
 ├── src/
+├── .github/workflows/ci.yml
 ├── jest.config.js
 ├── package.json
 ├── package-lock.json
 └── README.md
 ```
 
-A implementação em `src/` é a fonte da verdade para os recursos disponíveis. O README evita prometer telas, integrações ou bibliotecas que não estejam no código e nas dependências atuais.
+A implementação em `src/` é a fonte da verdade para os recursos disponíveis. A documentação não promete telas, integrações ou bibliotecas que não estejam no código e nas dependências atuais.
 
 ## Fluxo recomendado
 
@@ -56,11 +61,8 @@ A implementação em `src/` é a fonte da verdade para os recursos disponíveis.
 
 ## Próximas melhorias
 
-- Adicionar lint e formatação automática.
-- Configurar CI para build e testes.
-- Documentar os módulos exportados e adicionar testes para os casos de erro.
+- Adicionar lint e formatação automática e integrá-los ao CI.
+- Medir e acompanhar a cobertura dos testes.
+- Documentar os módulos exportados e ampliar testes para casos de erro.
 
 Projeto de portfólio em evolução.
-
-
-> Escopo atual: biblioteca/utilitário TypeScript de linha de comando para formatar e resumir métricas; ainda não inclui uma interface web.
