@@ -1,14 +1,22 @@
 {
   "name": "web-dashboard-ts",
   "version": "1.1.0",
-  "description": "Modern Web Dashboard built with TypeScript, Jest, and CI/CD integration",
+  "description": "TypeScript utilities for formatting and summarizing dashboard metrics",
   "main": "dist/index.js",
   "scripts": {
     "dev": "ts-node src/index.ts",
     "build": "tsc",
     "test": "jest"
   },
-  "keywords": ["typescript", "react", "dashboard", "frontend", "portfolio", "ci-cd"],
+  "keywords": [
+    "typescript",
+    "metrics",
+    "dashboard-utilities",
+    "jest",
+    "testing",
+    "portfolio",
+    "ci-cd"
+  ],
   "author": "João Junior (juniordev830)",
   "license": "MIT",
   "devDependencies": {
