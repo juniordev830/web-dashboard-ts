@@ -11,17 +11,25 @@ describe('Web Dashboard Metrics Utilities', () => {
     expect(result).toBe('[OPTIMAL] Total Sales: 500 USD');
   });
 
-  test('calculateSummary should evaluate health status correctly', () => {
+  test('calculateSummary should aggregate values separately by unit', () => {
     const summary = calculateSummary(mockMetrics);
     expect(summary.totalMetrics).toBe(2);
-    expect(summary.totalValue).toBe(505);
+    expect(summary.totalsByUnit).toEqual({ USD: 500, '%': 5 });
     expect(summary.healthStatus).toBe('CRITICAL');
+  });
+
+  test('calculateSummary should combine metrics that share a unit', () => {
+    const metrics: DashboardMetric[] = [
+      { id: '1', title: 'Revenue A', value: 100, unit: 'USD', status: 'optimal' },
+      { id: '2', title: 'Revenue B', value: 250, unit: 'USD', status: 'warning' }
+    ];
+    expect(calculateSummary(metrics).totalsByUnit).toEqual({ USD: 350 });
   });
 
   test('calculateSummary should return a healthy empty summary for an empty list', () => {
     expect(calculateSummary([])).toEqual({
       totalMetrics: 0,
-      totalValue: 0,
+      totalsByUnit: {},
       healthStatus: 'HEALTHY'
     });
   });
@@ -39,4 +47,15 @@ describe('Web Dashboard Metrics Utilities', () => {
       expect(() => calculateSummary([invalidMetric])).toThrow(RangeError);
     }
   );
+
+  test('calculateSummary should reject missing or whitespace-only units', () => {
+    const invalidMetric: DashboardMetric = {
+      id: 'invalid',
+      title: 'Invalid metric',
+      value: 1,
+      unit: '   ',
+      status: 'optimal'
+    };
+    expect(() => calculateSummary([invalidMetric])).toThrow(RangeError);
+  });
 });
