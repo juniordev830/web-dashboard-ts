@@ -58,4 +58,13 @@ describe('Web Dashboard Metrics Utilities', () => {
     };
     expect(() => calculateSummary([invalidMetric])).toThrow(RangeError);
   });
+
+  test('calculateSummary should reject overflow while aggregating a shared unit', () => {
+    const metrics: DashboardMetric[] = [
+      { id: 'large-a', title: 'Large A', value: Number.MAX_VALUE, unit: 'units', status: 'optimal' },
+      { id: 'large-b', title: 'Large B', value: Number.MAX_VALUE, unit: 'units', status: 'optimal' }
+    ];
+    expect(() => calculateSummary(metrics)).toThrow(RangeError);
+    expect(() => calculateSummary(metrics)).toThrow('Aggregated total for unit "units" must remain finite');
+  });
 });
