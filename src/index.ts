@@ -28,7 +28,11 @@ export function calculateSummary(metrics: DashboardMetric[]) {
     if (!unit) {
       throw new RangeError(`Metric "${metric.id}" must have a non-empty unit`);
     }
-    totalsByUnit[unit] = (totalsByUnit[unit] ?? 0) + metric.value;
+    const total = (totalsByUnit[unit] ?? 0) + metric.value;
+    if (!Number.isFinite(total)) {
+      throw new RangeError(`Aggregated total for unit "${unit}" must remain finite`);
+    }
+    totalsByUnit[unit] = total;
   }
 
   const warningCount = metrics.filter(m => m.status === 'warning').length;
