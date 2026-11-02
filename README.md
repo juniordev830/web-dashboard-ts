@@ -59,6 +59,15 @@ A implementação em `src/` é a fonte da verdade para os recursos disponíveis.
 3. Execute `npm test`.
 4. Atualize a documentação quando comandos ou comportamentos mudarem.
 
+## Segurança da agregação
+
+`calculateSummary(metrics)` aceita nomes de unidade como `USD`, `ms`,
+`toString`, `constructor` e `__proto__` sem colisões com propriedades
+herdadas de objetos JavaScript. Internamente a agregação usa `Map` e devolve
+o mesmo contrato anterior: `totalsByUnit` é um objeto comum com as unidades
+como chaves próprias. Os testes de regressão cobrem nomes especiais, unidades
+repetidas, valores não finitos e overflow.
+
 ## Próximas melhorias
 
 - Adicionar lint e formatação automática e integrá-los ao CI.
