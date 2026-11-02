@@ -35,6 +35,13 @@ export function calculateSummary(metrics: DashboardMetric[]) {
     totalsByUnit[unit] = total;
   }
 
+  const validStatuses = new Set<DashboardMetric['status']>(['optimal', 'warning', 'critical']);
+  for (const metric of metrics) {
+    if (!validStatuses.has(metric.status)) {
+      throw new RangeError(`Metric \"${metric.id}\" has an unsupported status`);
+    }
+  }
+
   const warningCount = metrics.filter(m => m.status === 'warning').length;
   const criticalCount = metrics.filter(m => m.status === 'critical').length;
 

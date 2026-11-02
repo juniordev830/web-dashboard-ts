@@ -67,4 +67,20 @@ describe('Web Dashboard Metrics Utilities', () => {
     expect(() => calculateSummary(metrics)).toThrow(RangeError);
     expect(() => calculateSummary(metrics)).toThrow('Aggregated total for unit "units" must remain finite');
   });
+
+  test('calculateSummary should reject unsupported runtime statuses', () => {
+    const invalidMetric = {
+      id: 'invalid-status',
+      title: 'Invalid status',
+      value: 10,
+      unit: 'units',
+      status: 'unknown'
+    } as unknown as DashboardMetric;
+
+    expect(() => calculateSummary([invalidMetric])).toThrow(RangeError);
+    expect(() => calculateSummary([invalidMetric])).toThrow(
+      'Metric "invalid-status" has an unsupported status'
+    );
+  });
+
 });
