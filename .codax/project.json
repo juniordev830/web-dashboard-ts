@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "project_kind": "Biblioteca de métricas TypeScript",
+  "entry_points": [
+    "src/index.ts",
+    "src/index.test.ts"
+  ],
+  "test_commands": [
+    "npm run build",
+    "npm test"
+  ],
+  "review_focus": [
+    "Validação de números finitos e unidades",
+    "Agregação de métricas e mensagens de status"
+  ]
+}
