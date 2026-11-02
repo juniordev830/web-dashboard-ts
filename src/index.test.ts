@@ -26,6 +26,24 @@ describe('Web Dashboard Metrics Utilities', () => {
     expect(calculateSummary(metrics).totalsByUnit).toEqual({ USD: 350 });
   });
 
+  test('calculateSummary safely aggregates units named like Object prototype keys', () => {
+    const units = ['toString', 'constructor', '__proto__', 'hasOwnProperty'];
+    const metrics: DashboardMetric[] = units.flatMap((unit, index) => [
+      { id: `special-${index}-a`, title: 'Metric A', value: 2, unit, status: 'optimal' },
+      { id: `special-${index}-b`, title: 'Metric B', value: 3, unit, status: 'warning' },
+    ]);
+
+    const result = calculateSummary(metrics);
+    expect(result.totalMetrics).toBe(8);
+    expect(result.healthStatus).toBe('WARNING');
+    expect(Object.keys(result.totalsByUnit).sort()).toEqual([...units].sort());
+    for (const unit of units) {
+      expect(Object.prototype.hasOwnProperty.call(result.totalsByUnit, unit)).toBe(true);
+      expect(result.totalsByUnit[unit]).toBe(5);
+    }
+    expect(Object.getPrototypeOf(result.totalsByUnit)).toBe(Object.prototype);
+  });
+
   test('calculateSummary should return a healthy empty summary for an empty list', () => {
     expect(calculateSummary([])).toEqual({
       totalMetrics: 0,

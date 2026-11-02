@@ -18,7 +18,8 @@ export function formatMetric(metric: DashboardMetric): string {
 }
 
 export function calculateSummary(metrics: DashboardMetric[]) {
-  const totalsByUnit: Record<string, number> = {};
+  // Map avoids collisions with inherited Object keys such as toString and __proto__.
+  const totalsByUnit = new Map<string, number>();
 
   for (const metric of metrics) {
     if (!Number.isFinite(metric.value)) {
@@ -28,11 +29,11 @@ export function calculateSummary(metrics: DashboardMetric[]) {
     if (!unit) {
       throw new RangeError(`Metric "${metric.id}" must have a non-empty unit`);
     }
-    const total = (totalsByUnit[unit] ?? 0) + metric.value;
+    const total = (totalsByUnit.get(unit) ?? 0) + metric.value;
     if (!Number.isFinite(total)) {
       throw new RangeError(`Aggregated total for unit "${unit}" must remain finite`);
     }
-    totalsByUnit[unit] = total;
+    totalsByUnit.set(unit, total);
   }
 
   const validStatuses = new Set<DashboardMetric['status']>(['optimal', 'warning', 'critical']);
@@ -47,7 +48,7 @@ export function calculateSummary(metrics: DashboardMetric[]) {
 
   return {
     totalMetrics: metrics.length,
-    totalsByUnit,
+    totalsByUnit: Object.fromEntries(totalsByUnit),
     healthStatus: criticalCount > 0 ? 'CRITICAL' : warningCount > 0 ? 'WARNING' : 'HEALTHY'
   };
 }
