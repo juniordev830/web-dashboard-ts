@@ -1,4 +1,4 @@
-import { DashboardMetric, formatMetric, calculateSummary } from './index';
+import { DashboardMetric, formatMetric, calculateSummary, calculateHealthScore } from './index';
 
 describe('Web Dashboard Metrics Utilities', () => {
   const mockMetrics: DashboardMetric[] = [
@@ -16,6 +16,15 @@ describe('Web Dashboard Metrics Utilities', () => {
     expect(summary.totalMetrics).toBe(2);
     expect(summary.totalsByUnit).toEqual({ USD: 500, '%': 5 });
     expect(summary.healthStatus).toBe('CRITICAL');
+  });
+
+  test('calculateHealthScore penalizes warnings and critical metrics', () => {
+    expect(calculateHealthScore([])).toBe(100);
+    expect(calculateHealthScore([
+      { id: '1', title: 'Healthy', value: 1, unit: 'u', status: 'optimal' },
+      { id: '2', title: 'Warning', value: 1, unit: 'u', status: 'warning' },
+      { id: '3', title: 'Critical', value: 1, unit: 'u', status: 'critical' },
+    ])).toBe(78);
   });
 
   test('calculateSummary should combine metrics that share a unit', () => {

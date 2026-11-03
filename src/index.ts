@@ -53,6 +53,17 @@ export function calculateSummary(metrics: DashboardMetric[]) {
   };
 }
 
+export function calculateHealthScore(metrics: DashboardMetric[]): number {
+  // Validate the same runtime constraints as the summary before scoring.
+  calculateSummary(metrics);
+  if (metrics.length === 0) return 100;
+
+  const warningCount = metrics.filter(metric => metric.status === 'warning').length;
+  const criticalCount = metrics.filter(metric => metric.status === 'critical').length;
+  const penalty = warningCount * 15 + criticalCount * 50;
+  return Math.max(0, Math.round(100 - (penalty / metrics.length)));
+}
+
 export function main(): void {
   const metrics: DashboardMetric[] = [
     { id: '1', title: 'Active Users', value: 1250, unit: 'users', status: 'optimal' },
