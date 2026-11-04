@@ -1,6 +1,6 @@
 # Dashboard Metrics Utilities (TypeScript)
 
-Biblioteca/utilitário TypeScript de linha de comando para formatar e resumir métricas e **analisar tendências temporais por métrica**. O projeto ainda não inclui uma interface web, API ou coleta de telemetria real.
+Biblioteca/utilitário TypeScript de linha de comando para formatar e resumir métricas e **analisar tendências e agregar amostras por dia UTC**. O projeto ainda não inclui uma interface web, API ou coleta de telemetria real.
 
 ## Tecnologias
 
@@ -58,6 +58,23 @@ console.log(trends[0]);
 - A direção `up` ou `down` não significa necessariamente melhora ou piora — isso depende do tipo de métrica.
 - Faz comparação simples de extremos observados, **não** previsão, média móvel, detecção de anomalias ou análise sazonal.
 
+### `summarizeDailyMetrics(samples)`
+
+Agrupa observações pelo par **métrica + data UTC**, devolvendo contagem, menor valor, maior valor e média aritmética para cada dia. A implementação usa atualização incremental da média para evitar a soma direta de números extremos; não altera a entrada. Os resultados são ordenados por data, depois pelo ID da métrica.
+
+```ts
+import { summarizeDailyMetrics } from './src/trends';
+
+const daily = summarizeDailyMetrics([
+  { metricId: 'latency', timestamp: '2026-11-02T10:00:00.000Z', value: 10 },
+  { metricId: 'latency', timestamp: '2026-11-02T11:00:00.000Z', value: 30 },
+]);
+// [{ metricId: 'latency', date: '2026-11-02', count: 2,
+//    minimum: 10, maximum: 30, average: 20 }]
+```
+
+Regras: timestamp UTC canônico com milissegundos; valores finitos; ID não vazio; nenhum timestamp repetido para a mesma métrica. As datas são agrupadas em UTC, sem converter para o fuso local. Não representa média ponderada por duração ou coleta de dados em tempo real.
+
 ## Testes e CI
 
 ```bash
@@ -73,15 +90,16 @@ A suíte cobre sumários, unidades com nomes especiais, valores não finitos, ov
 src/
   index.ts             # Modelo de métricas, resumo e demonstração CLI
   index.test.ts        # Testes do resumo
-  trends.ts            # Análise temporal pura
-  trends.test.ts       # Testes de tendências
+  trends.ts            # Análise temporal e resumos diários
+  trends.test.ts       # Testes de tendências e agrupamentos
 ```
 
 ## Evolução planejada
 
 - Adicionar uma interface web responsiva e gráficos.
 - Integrar a coleta com uma API real, com autenticação e limites de uso.
-- Adicionar agregação por janelas temporais e visualização de tendências.
+- [x] Agregação por dia UTC (mínimo, máximo, contagem e média) no núcleo TypeScript.
+- [ ] Adicionar agregação por janelas configuráveis e visualização de tendências.
 - Medir cobertura e integrar lint ao CI.
 
 Projeto de Engenharia de Software em evolução, mantido na conta [juniordev830](https://github.com/juniordev830).
