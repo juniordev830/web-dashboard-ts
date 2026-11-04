@@ -149,7 +149,7 @@ export function summarizeDailyMetrics(samples: readonly MetricSample[]): DailyMe
     }
 
     const nextCount = existing.count + 1;
-    const mean = (existing.average * existing.count / nextCount) +
+    const mean = (existing.average * (existing.count / nextCount)) +
                  (sample.value / nextCount);
     if (!Number.isFinite(mean)) {
       throw new RangeError('Daily metric average must remain finite');
