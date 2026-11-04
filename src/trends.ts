@@ -96,3 +96,74 @@ export function calculateMetricTrends(samples: readonly MetricSample[]): MetricT
   }
   return output.sort((a, b) => a.metricId.localeCompare(b.metricId));
 }
+
+/** UTC daily rollup per metric, suitable for rendering a time-series chart. */
+export interface DailyMetricSummary {
+  metricId: string;
+  date: string; // YYYY-MM-DD (UTC)
+  count: number;
+  minimum: number;
+  maximum: number;
+  average: number;
+}
+
+/**
+ * Groups valid metric samples into UTC days. Uses an incremental weighted mean
+ * rather than summing raw values, avoiding unnecessary arithmetic overflow.
+ * Each metric/timestamp pair must be unique.
+ */
+export function summarizeDailyMetrics(samples: readonly MetricSample[]): DailyMetricSummary[] {
+  const groups = new Map<string, DailyMetricSummary>();
+  const observed = new Map<string, Set<number>>();
+
+  for (const sample of samples) {
+    if (!sample || typeof sample.metricId !== 'string' || !sample.metricId.trim()) {
+      throw new RangeError('Sample metricId must be a non-empty string');
+    }
+    if (!Number.isFinite(sample.value)) {
+      throw new RangeError('Sample value must be finite');
+    }
+
+    const metricId = sample.metricId.trim();
+    const epoch = parseTimestamp(sample.timestamp);
+    const uniqueTimestamps = observed.get(metricId) ?? new Set<number>();
+    if (uniqueTimestamps.has(epoch)) {
+      throw new RangeError(`Duplicate sample timestamp for metric "${metricId}"`);
+    }
+    uniqueTimestamps.add(epoch);
+    observed.set(metricId, uniqueTimestamps);
+
+    const date = sample.timestamp.slice(0, 10);
+    const key = JSON.stringify([metricId, date]);
+    const existing = groups.get(key);
+    if (!existing) {
+      groups.set(key, {
+        metricId,
+        date,
+        count: 1,
+        minimum: sample.value,
+        maximum: sample.value,
+        average: sample.value,
+      });
+      continue;
+    }
+
+    const nextCount = existing.count + 1;
+    const mean = (existing.average * existing.count / nextCount) +
+                 (sample.value / nextCount);
+    if (!Number.isFinite(mean)) {
+      throw new RangeError('Daily metric average must remain finite');
+    }
+    groups.set(key, {
+      metricId,
+      date,
+      count: nextCount,
+      minimum: Math.min(existing.minimum, sample.value),
+      maximum: Math.max(existing.maximum, sample.value),
+      average: mean,
+    });
+  }
+
+  return [...groups.values()].sort((a, b) =>
+    a.date.localeCompare(b.date) || a.metricId.localeCompare(b.metricId));
+}
