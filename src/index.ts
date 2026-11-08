@@ -1,3 +1,5 @@
+import { evaluateMetricAlerts } from './alerts';
+
 export interface DashboardMetric {
   id: string;
   title: string;
@@ -74,6 +76,12 @@ export function main(): void {
   console.log('=== Web Dashboard Metrics ===');
   metrics.forEach(m => console.log(formatMetric(m)));
   console.log('Summary:', calculateSummary(metrics));
+  const alerts = evaluateMetricAlerts(metrics, [
+    { metricId: '3', direction: 'above', warning: 300, critical: 500 },
+    { metricId: '1', direction: 'below', warning: 100, critical: 20 },
+  ]);
+  console.log('Threshold alerts:', alerts);
+
 }
 
 if (require.main === module) {
