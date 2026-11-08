@@ -85,3 +85,22 @@ src/
 - Medir cobertura e integrar lint ao CI.
 
 Projeto de Engenharia de Software em evolução, mantido na conta [juniordev830](https://github.com/juniordev830).
+
+
+## Alertas por limites configuráveis
+
+O módulo `src/alerts.ts` adiciona regras de monitoramento de métricas sem fazer chamadas de rede nem alterar o estado de entrada. Uma regra pode alertar quando o valor ultrapassa um limite (`above`) ou cai abaixo dele (`below`). Os limites de aviso e crítico são inclusivos, com validação de ordem, valores finitos e IDs duplicados.
+
+```ts
+import { evaluateMetricAlerts } from './src/alerts';
+
+const report = evaluateMetricAlerts(
+  [{ id: 'latency', title: 'API latency', value: 340, unit: 'ms', status: 'warning' }],
+  [{ metricId: 'latency', direction: 'above', warning: 200, critical: 500 }]
+);
+console.log(report.alerts[0].level); // warning
+```
+
+Se houver uma regra para uma métrica sem observação, a situação será **`missing`**, nunca `ok`. O retorno inclui contadores de regras `ok`, `warning`, `critical` e `missing`. Execute `npm run dev` para ver um exemplo.
+
+**Limitações:** não existem notificações, persistência nem coletas em tempo real; valores e limites são fictícios e precisam ser escolhidos conforme cada aplicação. Testes Jest validam condições de fronteira, dados ausentes, valores inválidos e imutabilidade.
