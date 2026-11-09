@@ -46,7 +46,7 @@ Os percentis usam interpolação linear na posição `(n - 1) * p` e não repres
 
 ### `calculateSummary(metrics)`
 
-Agrupa valores por unidade, conta as métricas e retorna `healthStatus` conforme os estados `optimal`, `warning` e `critical`. Valores inválidos e overflow são rejeitados com `RangeError`. A agregação usa `Map`, inclusive para chaves especiais como `__proto__` e `constructor`.
+Agrupa valores por unidade, conta as métricas e retorna `healthStatus` conforme os estados `optimal`, `warning` e `critical`. IDs vazios, métricas malformadas, unidades ausentes, valores não numéricos e overflow são rejeitados com `RangeError`; coleções que não sejam arrays geram `TypeError`. A validação também se aplica a `calculateHealthScore(metrics)`. A agregação usa `Map`, inclusive para chaves especiais como `__proto__` e `constructor`.
 
 ### `calculateMetricTrends(samples)`
 
