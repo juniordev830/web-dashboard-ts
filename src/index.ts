@@ -1,4 +1,6 @@
 export { summarizeMetricDistributions } from './statistics';
+export { bucketMetricSamples } from './windowed';
+export type { MetricWindow } from './windowed';
 export type { MetricDistribution, MetricObservation } from './statistics';
 
 import { evaluateMetricAlerts } from './alerts';
