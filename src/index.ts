@@ -1,3 +1,6 @@
+export { summarizeMetricDistributions } from './statistics';
+export type { MetricDistribution, MetricObservation } from './statistics';
+
 import { evaluateMetricAlerts } from './alerts';
 
 export interface DashboardMetric {
