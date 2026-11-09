@@ -23,7 +23,7 @@ export interface MetricTrend {
 type TimedSample = { timestamp: string; epoch: number; value: number };
 const UTC_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
 
-function parseTimestamp(timestamp: string): number {
+export function parseTimestamp(timestamp: string): number {
   if (typeof timestamp !== 'string' || !UTC_TIMESTAMP.test(timestamp)) {
     throw new RangeError('Sample timestamp must use canonical UTC ISO 8601 format');
   }
