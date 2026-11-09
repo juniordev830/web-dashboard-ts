@@ -124,3 +124,17 @@ console.log(report.alerts[0].level); // warning
 Se houver uma regra para uma métrica sem observação, a situação será **`missing`**, nunca `ok`. O retorno inclui contadores de regras `ok`, `warning`, `critical` e `missing`. Execute `npm run dev` para ver um exemplo.
 
 **Limitações:** não existem notificações, persistência nem coletas em tempo real; valores e limites são fictícios e precisam ser escolhidos conforme cada aplicação. Testes Jest validam condições de fronteira, dados ausentes, valores inválidos e imutabilidade.
+
+## Agregação por janelas de tempo UTC
+
+A função `bucketMetricSamples(samples, windowMinutes)`, exportada por `src/index.ts`, agrupa amostras por métrica em janelas UTC alinhadas de **1 a 1440 minutos** (padrão de 60). Para cada janela fornece início ISO, quantidade, mínimo, máximo e média, sem alterar os dados de entrada. Amostras com timestamp duplicado na mesma métrica são rejeitadas. Limite de 100 mil observações por chamada.
+
+```ts
+import { bucketMetricSamples } from './src/index';
+const janelas = bucketMetricSamples([
+  { metricId: 'latency', timestamp: '2026-11-09T10:00:00.000Z', value: 150 },
+  { metricId: 'latency', timestamp: '2026-11-09T10:20:00.000Z', value: 250 }
+], 60); // uma janela com media 200
+```
+
+É uma agregação estatística local, não um pipeline de telemetria ao vivo.
