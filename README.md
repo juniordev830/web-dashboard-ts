@@ -24,6 +24,26 @@ O comando `dev` imprime um exemplo local de resumo de métricas. Não inicia ser
 
 ## Funções disponíveis
 
+### \`summarizeMetricDistributions(observations)\`
+
+Gera um resumo estatístico por métrica: quantidade de observações, mínimo, máximo, média, mediana e percentil 95 (**p95**). Aceita observações sem timestamp, agrupa pelo identificador e **não altera** os dados fornecidos.
+
+\`\`\`ts
+import { summarizeMetricDistributions } from './src/index';
+
+const distributions = summarizeMetricDistributions([
+  { metricId: 'latency', value: 100 },
+  { metricId: 'latency', value: 200 },
+  { metricId: 'latency', value: 300 }
+]);
+// [{ metricId: 'latency', sampleCount: 3, min: 100,
+//    max: 300, mean: 200, median: 200, p95: 290 }]
+\`\`\`
+
+Os percentis usam interpolação linear na posição \`(n - 1) * p\` e não representam limites de SLA por si mesmos. IDs vazios e valores não numéricos ou não finitos são rejeitados. Amostras de um mesmo ID podem repetir valores; os dados de entrada permanecem intactos. A média utiliza cálculo incremental para evitar estouro de somas intermediárias.
+
+
+
 ### `calculateSummary(metrics)`
 
 Agrupa valores por unidade, conta as métricas e retorna `healthStatus` conforme os estados `optimal`, `warning` e `critical`. Valores inválidos e overflow são rejeitados com `RangeError`. A agregação usa `Map`, inclusive para chaves especiais como `__proto__` e `constructor`.
