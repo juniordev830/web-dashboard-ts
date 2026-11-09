@@ -1,3 +1,8 @@
+export { summarizeMetricDistributions } from './statistics';
+export { bucketMetricSamples } from './windowed';
+export type { MetricWindow } from './windowed';
+export type { MetricDistribution, MetricObservation } from './statistics';
+
 import { evaluateMetricAlerts } from './alerts';
 
 export interface DashboardMetric {
@@ -20,12 +25,21 @@ export function formatMetric(metric: DashboardMetric): string {
 }
 
 export function calculateSummary(metrics: DashboardMetric[]) {
+  if (!Array.isArray(metrics)) {
+    throw new TypeError('Metrics must be an array');
+  }
   // Map avoids collisions with inherited Object keys such as toString and __proto__.
   const totalsByUnit = new Map<string, number>();
 
   for (const metric of metrics) {
-    if (!Number.isFinite(metric.value)) {
+    if (!metric || typeof metric.id !== 'string' || !metric.id.trim()) {
+      throw new RangeError('Metric id must be a non-empty string');
+    }
+    if (typeof metric.value !== 'number' || !Number.isFinite(metric.value)) {
       throw new RangeError(`Metric "${metric.id}" must have a finite numeric value`);
+    }
+    if (typeof metric.unit !== 'string') {
+      throw new RangeError(`Metric "${metric.id}" must have a non-empty unit`);
     }
     const unit = metric.unit.trim();
     if (!unit) {

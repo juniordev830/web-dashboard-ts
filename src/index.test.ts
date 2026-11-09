@@ -95,6 +95,30 @@ describe('Web Dashboard Metrics Utilities', () => {
     expect(() => calculateSummary(metrics)).toThrow('Aggregated total for unit "units" must remain finite');
   });
 
+  test('calculateSummary rejects invalid runtime metric rows and missing units', () => {
+    const base = {
+      id: 'metric-a', title: 'Example', value: 10, unit: 'ms', status: 'optimal'
+    } as const;
+    const invalidRows: unknown[] = [
+      null,
+      { ...base, id: ' ' },
+      { ...base, id: null },
+      { ...base, unit: undefined },
+      { ...base, unit: null },
+      { ...base, unit: 42 },
+      { ...base, value: '10' }
+    ];
+    for (const row of invalidRows) {
+      expect(() => calculateSummary([row as DashboardMetric])).toThrow(RangeError);
+      expect(() => calculateHealthScore([row as DashboardMetric])).toThrow(RangeError);
+    }
+  });
+
+  test('calculateSummary rejects non-array metric collections', () => {
+    expect(() => calculateSummary(null as unknown as DashboardMetric[])).toThrow(TypeError);
+    expect(() => calculateHealthScore({} as unknown as DashboardMetric[])).toThrow(TypeError);
+  });
+
   test('calculateSummary should reject unsupported runtime statuses', () => {
     const invalidMetric = {
       id: 'invalid-status',
