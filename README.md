@@ -24,11 +24,11 @@ O comando `dev` imprime um exemplo local de resumo de métricas. Não inicia ser
 
 ## Funções disponíveis
 
-### \`summarizeMetricDistributions(observations)\`
+### `summarizeMetricDistributions(observations)`
 
 Gera um resumo estatístico por métrica: quantidade de observações, mínimo, máximo, média, mediana e percentil 95 (**p95**). Aceita observações sem timestamp, agrupa pelo identificador e **não altera** os dados fornecidos.
 
-\`\`\`ts
+```ts
 import { summarizeMetricDistributions } from './src/index';
 
 const distributions = summarizeMetricDistributions([
@@ -38,9 +38,9 @@ const distributions = summarizeMetricDistributions([
 ]);
 // [{ metricId: 'latency', sampleCount: 3, min: 100,
 //    max: 300, mean: 200, median: 200, p95: 290 }]
-\`\`\`
+```
 
-Os percentis usam interpolação linear na posição \`(n - 1) * p\` e não representam limites de SLA por si mesmos. IDs vazios e valores não numéricos ou não finitos são rejeitados. Amostras de um mesmo ID podem repetir valores; os dados de entrada permanecem intactos. A média utiliza cálculo incremental para evitar estouro de somas intermediárias.
+Os percentis usam interpolação linear na posição `(n - 1) * p` e não representam limites de SLA por si mesmos. IDs vazios e valores não numéricos ou não finitos são rejeitados. Amostras de um mesmo ID podem repetir valores; os dados de entrada permanecem intactos. A média utiliza cálculo incremental para evitar estouro de somas intermediárias.
 
 
 
