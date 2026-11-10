@@ -127,7 +127,7 @@ Se houver uma regra para uma métrica sem observação, a situação será **`mi
 
 ## Agregação por janelas de tempo UTC
 
-A função `bucketMetricSamples(samples, windowMinutes)`, exportada por `src/index.ts`, agrupa amostras por métrica em janelas UTC alinhadas de **1 a 1440 minutos** (padrão de 60). Para cada janela fornece início ISO, quantidade, mínimo, máximo e média, sem alterar os dados de entrada. Amostras com timestamp duplicado na mesma métrica são rejeitadas. Limite de 100 mil observações por chamada.
+A função `bucketMetricSamples(samples, windowMinutes)`, exportada por `src/index.ts`, agrupa amostras por métrica em janelas UTC alinhadas de **1 a 1440 minutos** (padrão de 60). Cada janela começa em um múltiplo do intervalo contado a partir de **00:00 UTC do próprio dia**. Quando o intervalo não divide 24 horas (como 7 minutos), a última janela do dia é mais curta e não mistura amostras com o dia seguinte. Para cada janela o resultado fornece início ISO, quantidade, mínimo, máximo e média, sem alterar os dados de entrada. Amostras com timestamp duplicado na mesma métrica são rejeitadas. Limite de 100 mil observações por chamada.
 
 ```ts
 import { bucketMetricSamples } from './src/index';

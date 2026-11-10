@@ -42,7 +42,12 @@ export function bucketMetricSamples(
     used.add(time);
     seen.set(metricId, used);
 
-    const start = Math.floor(time / width) * width;
+    // Anchor every window to the current UTC calendar day. For windows that
+    // do not divide 24 hours evenly (e.g. 7 minutes), the final bucket is
+    // shorter instead of leaking samples into the next UTC day.
+    const startOfUtcDay = Math.floor(time / 86_400_000) * 86_400_000;
+    const start = startOfUtcDay +
+      Math.floor((time - startOfUtcDay) / width) * width;
     const metricGroups = groups.get(metricId) ?? new Map();
     const group = metricGroups.get(start);
     if (!group) {
