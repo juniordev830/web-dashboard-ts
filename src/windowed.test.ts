@@ -51,6 +51,19 @@ describe('bucketMetricSamples', () => {
     ]);
   });
 
+  test('handles UTC year rollover without joining samples into one bucket', () => {
+    const samples: MetricSample[] = [
+      { metricId: 'cpu', timestamp: '2026-12-31T23:59:00.000Z', value: 10 },
+      { metricId: 'cpu', timestamp: '2027-01-01T00:00:00.000Z', value: 20 },
+      { metricId: 'cpu', timestamp: '2027-01-01T00:06:00.000Z', value: 30 },
+    ];
+    const result = bucketMetricSamples(samples, 7);
+    expect(result.map((bucket) => [bucket.start, bucket.samples])).toEqual([
+      ['2026-12-31T23:55:00.000Z', 1],
+      ['2027-01-01T00:00:00.000Z', 2],
+    ]);
+  });
+
   test('returns empty list and keeps frozen input intact', () => {
     expect(bucketMetricSamples([])).toEqual([]);
     const data = Object.freeze([Object.freeze(at('00', 12))]);
