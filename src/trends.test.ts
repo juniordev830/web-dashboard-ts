@@ -65,6 +65,13 @@ describe('calculateMetricTrends', () => {
     }
   });
 
+  test('rejects non-array input and oversized telemetry batches', () => {
+    expect(() => calculateMetricTrends(null as unknown as MetricSample[])).toThrow(TypeError);
+    expect(() => calculateMetricTrends({} as unknown as MetricSample[])).toThrow(TypeError);
+    const oversized = Array(100_001).fill(at(0, 1));
+    expect(() => calculateMetricTrends(oversized)).toThrow('At most 100000 samples');
+  });
+
   test('rejects invalid ids and non-finite numbers', () => {
     expect(() => calculateMetricTrends([at(0, 1, '  ')])).toThrow(RangeError);
     for (const value of [NaN, Infinity, -Infinity]) {
