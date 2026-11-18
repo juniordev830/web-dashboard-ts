@@ -72,4 +72,14 @@ describe('summarizeMetricDistributions', () => {
     expect(result.min).toBe(-Number.MAX_VALUE);
     expect(result.max).toBe(Number.MAX_VALUE);
   });
+
+  test('preserves identical subnormal inputs in mean and quantiles', () => {
+    const result = summarizeMetricDistributions([
+      { metricId: 'tiny', value: Number.MIN_VALUE },
+      { metricId: 'tiny', value: Number.MIN_VALUE },
+    ])[0];
+    expect(result.mean).toBe(Number.MIN_VALUE);
+    expect(result.median).toBe(Number.MIN_VALUE);
+    expect(result.p95).toBe(Number.MIN_VALUE);
+  });
 });

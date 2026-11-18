@@ -19,6 +19,14 @@ export interface MetricDistribution {
   p95: number;
 }
 
+export function interpolateFinite(from: number, to: number, fraction: number): number {
+  const delta = to - from;
+  // Apply the offset when it fits, and only split the weights when the difference overflows.
+  return Number.isFinite(delta)
+    ? from + delta * fraction
+    : from * (1 - fraction) + to * fraction;
+}
+
 /**
  * Interpolated quantile using the (n - 1) * percentile index.
  * Weighted interpolation avoids intermediate overflow for extreme values.
@@ -28,7 +36,7 @@ function quantile(sorted: readonly number[], percentile: number): number {
   const lower = Math.floor(position);
   const upper = Math.ceil(position);
   const fraction = position - lower;
-  return sorted[lower] * (1 - fraction) + sorted[upper] * fraction;
+  return interpolateFinite(sorted[lower], sorted[upper], fraction);
 }
 
 /** Groups observations by trimmed metricId, with stable finite statistics. */
@@ -58,11 +66,11 @@ export function summarizeMetricDistributions(
   for (const [metricId, values] of groups) {
     const sorted = [...values].sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
 
-    // Online weighted mean avoids overflowing an intermediate sum.
+    // Online mean avoids overflowing an intermediate sum.
     let mean = 0;
     for (let index = 0; index < values.length; index += 1) {
       const count = index + 1;
-      mean = mean * ((count - 1) / count) + values[index] / count;
+      mean = interpolateFinite(mean, values[index], 1 / count);
     }
 
     distributions.push({

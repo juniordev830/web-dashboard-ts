@@ -89,4 +89,11 @@ describe('bucketMetricSamples', () => {
     expect(result[0].mean).toBe(0);
     expect(Number.isFinite(result[0].mean)).toBe(true);
   });
+
+  test('does not round identical subnormal samples down to zero', () => {
+    const [result] = bucketMetricSamples([
+      at('01', Number.MIN_VALUE), at('02', Number.MIN_VALUE),
+    ]);
+    expect(result.mean).toBe(Number.MIN_VALUE);
+  });
 });
