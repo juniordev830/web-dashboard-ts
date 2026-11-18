@@ -1,3 +1,5 @@
+import assert from 'node:assert/strict';
+import { describe, test } from 'node:test';
 import { calculateMetricTrends, MetricSample } from './trends';
 
 const at = (minute: number, value: number, metricId = 'latency'): MetricSample => ({
@@ -11,7 +13,7 @@ describe('calculateMetricTrends', () => {
     const samples = [at(2, 130), at(0, 100), at(1, 115)];
     const original = [...samples];
 
-    expect(calculateMetricTrends(samples)).toEqual([{
+    assert.deepEqual(calculateMetricTrends(samples), [{
       metricId: 'latency',
       sampleCount: 3,
       firstTimestamp: '2026-11-02T10:00:00.000Z',
@@ -22,17 +24,17 @@ describe('calculateMetricTrends', () => {
       percentageChange: 30,
       direction: 'up',
     }]);
-    expect(samples).toEqual(original); // The input order is unchanged.
+    assert.deepEqual(samples, original); // The input order is unchanged.
   });
 
   test('ignores single observations and reports zero-baseline percentage as null', () => {
     const trends = calculateMetricTrends([
       at(1, 10, 'zero'), at(0, 0, 'zero'), at(0, 2, 'single'),
     ]);
-    expect(trends).toHaveLength(1);
-    expect(trends[0].metricId).toBe('zero');
-    expect(trends[0].percentageChange).toBeNull();
-    expect(trends[0].direction).toBe('up');
+    assert.equal((trends).length, 1);
+    assert.equal(trends[0].metricId, 'zero');
+    assert.equal(trends[0].percentageChange, null);
+    assert.equal(trends[0].direction, 'up');
   });
 
   test('separates ids that resemble object prototype properties', () => {
@@ -41,15 +43,14 @@ describe('calculateMetricTrends', () => {
       at(0, 5, 'toString'), at(1, 2, 'toString'),
     ];
     const result = calculateMetricTrends(samples);
-    expect(result.map(item => item.metricId).sort()).toEqual(['__proto__', 'toString'].sort());
-    expect(result.find(item => item.metricId === '__proto__')?.direction).toBe('flat');
-    expect(result.find(item => item.metricId === 'toString')?.absoluteChange).toBe(-3);
-    expect(result.find(item => item.metricId === 'toString')?.percentageChange).toBe(-60);
+    assert.deepEqual(result.map(item => item.metricId).sort(), ['__proto__', 'toString'].sort());
+    assert.equal(result.find(item => item.metricId === '__proto__')?.direction, 'flat');
+    assert.equal(result.find(item => item.metricId === 'toString')?.absoluteChange, -3);
+    assert.equal(result.find(item => item.metricId === 'toString')?.percentageChange, -60);
   });
 
   test('normalizes id whitespace but rejects duplicate timestamps for the same metric', () => {
-    expect(() => calculateMetricTrends([at(0, 1, ' a '), at(0, 2, 'a')]))
-      .toThrow('Duplicate sample timestamp');
+    assert.throws(() => calculateMetricTrends([at(0, 1, ' a '), at(0, 2, 'a')]), /Duplicate sample timestamp/);
   });
 
   test('rejects invalid calendar dates and noncanonical or offset timestamps', () => {
@@ -60,22 +61,19 @@ describe('calculateMetricTrends', () => {
       'not-a-date',
     ];
     for (const timestamp of invalid) {
-      expect(() => calculateMetricTrends([{ metricId: 'a', timestamp, value: 1 }]))
-        .toThrow(RangeError);
+      assert.throws(() => calculateMetricTrends([{ metricId: 'a', timestamp, value: 1 }]), RangeError);
     }
   });
 
   test('rejects invalid ids and non-finite numbers', () => {
-    expect(() => calculateMetricTrends([at(0, 1, '  ')])).toThrow(RangeError);
+    assert.throws(() => calculateMetricTrends([at(0, 1, '  ')]), RangeError);
     for (const value of [NaN, Infinity, -Infinity]) {
-      expect(() => calculateMetricTrends([at(0, value)])).toThrow(RangeError);
+      assert.throws(() => calculateMetricTrends([at(0, value)]), RangeError);
     }
   });
 
   test('rejects arithmetic overflow instead of emitting infinite trend values', () => {
-    expect(() => calculateMetricTrends([at(0, -Number.MAX_VALUE), at(1, Number.MAX_VALUE)]))
-      .toThrow('Trend change');
-    expect(() => calculateMetricTrends([at(0, Number.MIN_VALUE), at(1, 1)]))
-      .toThrow('Trend percentage');
+    assert.throws(() => calculateMetricTrends([at(0, -Number.MAX_VALUE), at(1, Number.MAX_VALUE)]), /Trend change/);
+    assert.throws(() => calculateMetricTrends([at(0, Number.MIN_VALUE), at(1, 1)]), /Trend percentage/);
   });
 });

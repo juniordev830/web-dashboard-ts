@@ -1,3 +1,5 @@
+import assert from 'node:assert/strict';
+import { describe, test } from 'node:test';
 import { evaluateMetricAlerts, type MetricAlertRule } from './alerts';
 import type { DashboardMetric } from './index';
 
@@ -14,32 +16,32 @@ describe('metric threshold alerts', () => {
     const report = evaluateMetricAlerts(
       [metric('z-latency', 500), metric('a-errors', 5)], rules
     );
-    expect(report.alerts.map(a => [a.metricId, a.level])).toEqual([
+    assert.deepEqual(report.alerts.map(a => [a.metricId, a.level]), [
       ['a-errors', 'warning'], ['z-latency', 'critical']
     ]);
-    expect(report.counts).toEqual({ ok: 0, warning: 1, critical: 1, missing: 0 });
-    expect(report.hasCritical).toBe(true);
-    expect(report.hasMissing).toBe(false);
+    assert.deepEqual(report.counts, { ok: 0, warning: 1, critical: 1, missing: 0 });
+    assert.equal(report.hasCritical, true);
+    assert.equal(report.hasMissing, false);
   });
 
   test('lower limits classify capacity below thresholds', () => {
     const rule = [{ metricId: 'free-disk', direction: 'below' as const, warning: 25, critical: 10 }];
-    expect(evaluateMetricAlerts([metric('free-disk', 26)], rule).alerts[0].level).toBe('ok');
-    expect(evaluateMetricAlerts([metric('free-disk', 25)], rule).alerts[0].level).toBe('warning');
-    expect(evaluateMetricAlerts([metric('free-disk', 10)], rule).alerts[0].level).toBe('critical');
-    expect(evaluateMetricAlerts([metric('free-disk', 0)], rule).alerts[0].level).toBe('critical');
+    assert.equal(evaluateMetricAlerts([metric('free-disk', 26)], rule).alerts[0].level, 'ok');
+    assert.equal(evaluateMetricAlerts([metric('free-disk', 25)], rule).alerts[0].level, 'warning');
+    assert.equal(evaluateMetricAlerts([metric('free-disk', 10)], rule).alerts[0].level, 'critical');
+    assert.equal(evaluateMetricAlerts([metric('free-disk', 0)], rule).alerts[0].level, 'critical');
   });
 
   test('missing telemetry is not marked healthy and empty rules are valid', () => {
     const missing = evaluateMetricAlerts([], [
       { metricId: 'availability', direction: 'below', warning: 99, critical: 95 }
     ]);
-    expect(missing.alerts[0].value).toBeNull();
-    expect(missing.alerts[0].level).toBe('missing');
-    expect(missing.hasMissing).toBe(true);
-    expect(missing.hasCritical).toBe(false);
-    expect(missing.counts.missing).toBe(1);
-    expect(evaluateMetricAlerts([metric('anything', 2)], []).alerts).toEqual([]);
+    assert.equal(missing.alerts[0].value, null);
+    assert.equal(missing.alerts[0].level, 'missing');
+    assert.equal(missing.hasMissing, true);
+    assert.equal(missing.hasCritical, false);
+    assert.equal(missing.counts.missing, 1);
+    assert.deepEqual(evaluateMetricAlerts([metric('anything', 2)], []).alerts, []);
   });
 
   test('does not mutate metric data or threshold rules', () => {
@@ -48,31 +50,29 @@ describe('metric threshold alerts', () => {
       metricId: 'latency', direction: 'above' as const, warning: 100, critical: 200
     })]);
     const report = evaluateMetricAlerts(data, rules);
-    expect(report.alerts[0].level).toBe('warning');
-    expect(data[0].value).toBe(120);
-    expect(rules[0].warning).toBe(100);
+    assert.equal(report.alerts[0].level, 'warning');
+    assert.equal(data[0].value, 120);
+    assert.equal(rules[0].warning, 100);
   });
 
   test('rejects invalid threshold order, values and unknown direction', () => {
     const input = [metric('errors', 4)];
     const base = { metricId: 'errors', direction: 'above' as const, warning: 5, critical: 10 };
-    expect(() => evaluateMetricAlerts(input, [{ ...base, warning: 10 }])).toThrow(RangeError);
-    expect(() => evaluateMetricAlerts(input, [{ ...base, critical: Infinity }])).toThrow(RangeError);
-    expect(() => evaluateMetricAlerts(input, [{
+    assert.throws(() => evaluateMetricAlerts(input, [{ ...base, warning: 10 }]), RangeError);
+    assert.throws(() => evaluateMetricAlerts(input, [{ ...base, critical: Infinity }]), RangeError);
+    assert.throws(() => evaluateMetricAlerts(input, [{
       metricId: 'errors', direction: 'below', warning: 10, critical: 12
-    }])).toThrow(RangeError);
-    expect(() => evaluateMetricAlerts(input, [{ ...base, direction: 'invalid' as 'above' }])).toThrow(RangeError);
+    }]), RangeError);
+    assert.throws(() => evaluateMetricAlerts(input, [{ ...base, direction: 'invalid' as 'above' }]), RangeError);
   });
 
   test('rejects duplicate identifiers, empty ids, nonfinite metrics and invalid arrays', () => {
     const rule = { metricId: 'errors', direction: 'above' as const, warning: 3, critical: 5 };
-    expect(() => evaluateMetricAlerts([metric('errors', 1), metric('errors', 2)], [rule]))
-      .toThrow(/Duplicate metric/);
-    expect(() => evaluateMetricAlerts([metric('errors', 1)], [rule, rule]))
-      .toThrow(/Duplicate alert/);
-    expect(() => evaluateMetricAlerts([metric(' ', 3)], [rule])).toThrow(RangeError);
-    expect(() => evaluateMetricAlerts([metric('errors', NaN)], [rule])).toThrow(RangeError);
-    expect(() => evaluateMetricAlerts(null as unknown as DashboardMetric[], [rule])).toThrow(TypeError);
+    assert.throws(() => evaluateMetricAlerts([metric('errors', 1), metric('errors', 2)], [rule]), /Duplicate metric/);
+    assert.throws(() => evaluateMetricAlerts([metric('errors', 1)], [rule, rule]), /Duplicate alert/);
+    assert.throws(() => evaluateMetricAlerts([metric(' ', 3)], [rule]), RangeError);
+    assert.throws(() => evaluateMetricAlerts([metric('errors', NaN)], [rule]), RangeError);
+    assert.throws(() => evaluateMetricAlerts(null as unknown as DashboardMetric[], [rule]), TypeError);
   });
 
   test('prototype-like ids are handled safely without object key collisions', () => {
@@ -81,7 +81,7 @@ describe('metric threshold alerts', () => {
       { metricId: '__proto__', direction: 'above', warning: 20, critical: 40 },
       { metricId: 'constructor', direction: 'above', warning: 2, critical: 5 }
     ];
-    expect(evaluateMetricAlerts(rows, rules).counts).toEqual({
+    assert.deepEqual(evaluateMetricAlerts(rows, rules).counts, {
       ok: 1, warning: 0, critical: 1, missing: 0
     });
   });
