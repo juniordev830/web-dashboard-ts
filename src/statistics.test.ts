@@ -1,14 +1,16 @@
+import assert from 'node:assert/strict';
+import { describe, test } from 'node:test';
 import { summarizeMetricDistributions, type MetricObservation } from './statistics';
 
 describe('summarizeMetricDistributions', () => {
   test('calculates mean, median and interpolated p95 for unsorted observations', () => {
-    expect(summarizeMetricDistributions([
+    assert.deepEqual(summarizeMetricDistributions([
       { metricId: 'latency', value: 40 },
       { metricId: 'latency', value: 10 },
       { metricId: 'latency', value: 50 },
       { metricId: 'latency', value: 30 },
       { metricId: 'latency', value: 20 }
-    ])).toEqual([{
+    ]), [{
       metricId: 'latency',
       sampleCount: 5,
       min: 10,
@@ -20,15 +22,15 @@ describe('summarizeMetricDistributions', () => {
   });
 
   test('works with empty arrays, a single value and two values', () => {
-    expect(summarizeMetricDistributions([])).toEqual([]);
-    expect(summarizeMetricDistributions([{ metricId: 'a', value: 7 }])).toEqual([{
+    assert.deepEqual(summarizeMetricDistributions([]), []);
+    assert.deepEqual(summarizeMetricDistributions([{ metricId: 'a', value: 7 }]), [{
       metricId: 'a', sampleCount: 1, min: 7, max: 7, mean: 7, median: 7, p95: 7
     }]);
     const pair = summarizeMetricDistributions([
       { metricId: 'a', value: 0 }, { metricId: 'a', value: 100 }
     ])[0];
-    expect(pair.median).toBe(50);
-    expect(pair.p95).toBeCloseTo(95);
+    assert.equal(pair.median, 50);
+    assert.ok(Math.abs(pair.p95 - 95) < 0.005);
   });
 
   test('normalizes identifiers and keeps special object-like IDs separated', () => {
@@ -37,8 +39,8 @@ describe('summarizeMetricDistributions', () => {
       { metricId: 'constructor', value: 8 },
       { metricId: '__proto__', value: 5 }
     ]);
-    expect(result.map(item => item.metricId).sort()).toEqual(['__proto__', 'constructor'].sort());
-    expect(result.find(item => item.metricId === '__proto__')?.mean).toBe(4);
+    assert.deepEqual(result.map(item => item.metricId).sort(), ['__proto__', 'constructor'].sort());
+    assert.equal(result.find(item => item.metricId === '__proto__')?.mean, 4);
   });
 
   test('does not mutate frozen arrays and their observations', () => {
@@ -46,18 +48,15 @@ describe('summarizeMetricDistributions', () => {
       Object.freeze({ metricId: 'a', value: 10 }),
       Object.freeze({ metricId: 'a', value: 5 })
     ]);
-    expect(summarizeMetricDistributions(observations)[0].median).toBe(7.5);
-    expect(observations[0].value).toBe(10);
+    assert.equal(summarizeMetricDistributions(observations)[0].median, 7.5);
+    assert.equal(observations[0].value, 10);
   });
 
   test('rejects invalid arrays, IDs and non-finite values', () => {
-    expect(() => summarizeMetricDistributions(null as unknown as MetricObservation[]))
-      .toThrow(TypeError);
-    expect(() => summarizeMetricDistributions([{ metricId: '  ', value: 1 }]))
-      .toThrow(RangeError);
+    assert.throws(() => summarizeMetricDistributions(null as unknown as MetricObservation[]), TypeError);
+    assert.throws(() => summarizeMetricDistributions([{ metricId: '  ', value: 1 }]), RangeError);
     for (const value of [NaN, Infinity, -Infinity, '1' as unknown as number]) {
-      expect(() => summarizeMetricDistributions([{ metricId: 'a', value }]))
-        .toThrow(RangeError);
+      assert.throws(() => summarizeMetricDistributions([{ metricId: 'a', value }]), RangeError);
     }
   });
 
@@ -66,11 +65,11 @@ describe('summarizeMetricDistributions', () => {
       { metricId: 'huge', value: -Number.MAX_VALUE },
       { metricId: 'huge', value: Number.MAX_VALUE }
     ])[0];
-    expect(result.mean).toBe(0);
-    expect(result.median).toBe(0);
-    expect(Number.isFinite(result.p95)).toBe(true);
-    expect(result.min).toBe(-Number.MAX_VALUE);
-    expect(result.max).toBe(Number.MAX_VALUE);
+    assert.equal(result.mean, 0);
+    assert.equal(result.median, 0);
+    assert.equal(Number.isFinite(result.p95), true);
+    assert.equal(result.min, -Number.MAX_VALUE);
+    assert.equal(result.max, Number.MAX_VALUE);
   });
 
   test('preserves identical subnormal inputs in mean and quantiles', () => {
@@ -78,8 +77,8 @@ describe('summarizeMetricDistributions', () => {
       { metricId: 'tiny', value: Number.MIN_VALUE },
       { metricId: 'tiny', value: Number.MIN_VALUE },
     ])[0];
-    expect(result.mean).toBe(Number.MIN_VALUE);
-    expect(result.median).toBe(Number.MIN_VALUE);
-    expect(result.p95).toBe(Number.MIN_VALUE);
+    assert.equal(result.mean, Number.MIN_VALUE);
+    assert.equal(result.median, Number.MIN_VALUE);
+    assert.equal(result.p95, Number.MIN_VALUE);
   });
 });

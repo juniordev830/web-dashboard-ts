@@ -1,3 +1,5 @@
+import assert from 'node:assert/strict';
+import { describe, test } from 'node:test';
 import { bucketMetricSamples } from './windowed';
 import type { MetricSample } from './trends';
 
@@ -12,7 +14,7 @@ describe('bucketMetricSamples', () => {
       at('59', 100), at('01', 2, 'cpu'),
     ];
     const result = bucketMetricSamples(input, 30);
-    expect(result).toEqual([
+    assert.deepEqual(result, [
       { metricId: 'cpu', start: '2026-11-09T10:00:00.000Z',
         windowMinutes: 30, samples: 2, min: 2, max: 7, mean: 4.5 },
       { metricId: 'latency', start: '2026-11-09T10:00:00.000Z',
@@ -29,7 +31,7 @@ describe('bucketMetricSamples', () => {
       { metricId: 'latency', timestamp: '2026-11-10T00:06:00.000Z', value: 30 },
       { metricId: 'latency', timestamp: '2026-11-10T00:07:00.000Z', value: 50 },
     ];
-    expect(bucketMetricSamples(input, 7)).toEqual([
+    assert.deepEqual(bucketMetricSamples(input, 7), [
       { metricId: 'latency', start: '2026-11-09T23:55:00.000Z',
         windowMinutes: 7, samples: 1, min: 10, max: 10, mean: 10 },
       { metricId: 'latency', start: '2026-11-10T00:00:00.000Z',
@@ -45,7 +47,7 @@ describe('bucketMetricSamples', () => {
       { metricId: 'latency', timestamp: '2026-11-10T00:00:00.000Z', value: 20 },
     ];
     const result = bucketMetricSamples(input, 1440);
-    expect(result.map(window => window.start)).toEqual([
+    assert.deepEqual(result.map(window => window.start), [
       '2026-11-09T00:00:00.000Z',
       '2026-11-10T00:00:00.000Z',
     ]);
@@ -58,42 +60,42 @@ describe('bucketMetricSamples', () => {
       { metricId: 'cpu', timestamp: '2027-01-01T00:06:00.000Z', value: 30 },
     ];
     const result = bucketMetricSamples(samples, 7);
-    expect(result.map((bucket) => [bucket.start, bucket.samples])).toEqual([
+    assert.deepEqual(result.map((bucket) => [bucket.start, bucket.samples]), [
       ['2026-12-31T23:55:00.000Z', 1],
       ['2027-01-01T00:00:00.000Z', 2],
     ]);
   });
 
   test('returns empty list and keeps frozen input intact', () => {
-    expect(bucketMetricSamples([])).toEqual([]);
+    assert.deepEqual(bucketMetricSamples([]), []);
     const data = Object.freeze([Object.freeze(at('00', 12))]);
-    expect(bucketMetricSamples(data)[0].samples).toBe(1);
-    expect(data[0].value).toBe(12);
+    assert.equal(bucketMetricSamples(data)[0].samples, 1);
+    assert.equal(data[0].value, 12);
   });
 
   test('guards invalid windows, samples, duplicate timestamps and timestamps', () => {
     for (const invalid of [0, -1, 1.5, Infinity, 1441]) {
-      expect(() => bucketMetricSamples([], invalid)).toThrow(RangeError);
+      assert.throws(() => bucketMetricSamples([], invalid), RangeError);
     }
-    expect(() => bucketMetricSamples(null as unknown as MetricSample[])).toThrow(TypeError);
-    expect(() => bucketMetricSamples([at('00', 1), at('00', 2)])).toThrow(/Duplicate/);
-    expect(() => bucketMetricSamples([at('99', 3)])).toThrow(RangeError);
-    expect(() => bucketMetricSamples([at('00', Infinity)])).toThrow(RangeError);
-    expect(() => bucketMetricSamples([{ ...at('00', 1), metricId: ' ' }])).toThrow(RangeError);
+    assert.throws(() => bucketMetricSamples(null as unknown as MetricSample[]), TypeError);
+    assert.throws(() => bucketMetricSamples([at('00', 1), at('00', 2)]), /Duplicate/);
+    assert.throws(() => bucketMetricSamples([at('99', 3)]), RangeError);
+    assert.throws(() => bucketMetricSamples([at('00', Infinity)]), RangeError);
+    assert.throws(() => bucketMetricSamples([{ ...at('00', 1), metricId: ' ' }]), RangeError);
   });
 
   test('keeps sums finite with extreme signed observations', () => {
     const result = bucketMetricSamples([
       at('01', -Number.MAX_VALUE), at('02', Number.MAX_VALUE),
     ]);
-    expect(result[0].mean).toBe(0);
-    expect(Number.isFinite(result[0].mean)).toBe(true);
+    assert.equal(result[0].mean, 0);
+    assert.equal(Number.isFinite(result[0].mean), true);
   });
 
   test('does not round identical subnormal samples down to zero', () => {
     const [result] = bucketMetricSamples([
       at('01', Number.MIN_VALUE), at('02', Number.MIN_VALUE),
     ]);
-    expect(result.mean).toBe(Number.MIN_VALUE);
+    assert.equal(result.mean, Number.MIN_VALUE);
   });
 });

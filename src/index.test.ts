@@ -1,3 +1,5 @@
+import assert from 'node:assert/strict';
+import { describe, test } from 'node:test';
 import { DashboardMetric, formatMetric, calculateSummary, calculateHealthScore } from './index';
 
 describe('Web Dashboard Metrics Utilities', () => {
@@ -8,23 +10,23 @@ describe('Web Dashboard Metrics Utilities', () => {
 
   test('formatMetric should format metric string correctly', () => {
     const result = formatMetric(mockMetrics[0]);
-    expect(result).toBe('[OPTIMAL] Total Sales: 500 USD');
+    assert.equal(result, '[OPTIMAL] Total Sales: 500 USD');
   });
 
   test('calculateSummary should aggregate values separately by unit', () => {
     const summary = calculateSummary(mockMetrics);
-    expect(summary.totalMetrics).toBe(2);
-    expect(summary.totalsByUnit).toEqual({ USD: 500, '%': 5 });
-    expect(summary.healthStatus).toBe('CRITICAL');
+    assert.equal(summary.totalMetrics, 2);
+    assert.deepEqual(summary.totalsByUnit, { USD: 500, '%': 5 });
+    assert.equal(summary.healthStatus, 'CRITICAL');
   });
 
   test('calculateHealthScore penalizes warnings and critical metrics', () => {
-    expect(calculateHealthScore([])).toBe(100);
-    expect(calculateHealthScore([
+    assert.equal(calculateHealthScore([]), 100);
+    assert.equal(calculateHealthScore([
       { id: '1', title: 'Healthy', value: 1, unit: 'u', status: 'optimal' },
       { id: '2', title: 'Warning', value: 1, unit: 'u', status: 'warning' },
       { id: '3', title: 'Critical', value: 1, unit: 'u', status: 'critical' },
-    ])).toBe(78);
+    ]), 78);
   });
 
   test('calculateSummary should combine metrics that share a unit', () => {
@@ -32,7 +34,7 @@ describe('Web Dashboard Metrics Utilities', () => {
       { id: '1', title: 'Revenue A', value: 100, unit: 'USD', status: 'optimal' },
       { id: '2', title: 'Revenue B', value: 250, unit: 'USD', status: 'warning' }
     ];
-    expect(calculateSummary(metrics).totalsByUnit).toEqual({ USD: 350 });
+    assert.deepEqual(calculateSummary(metrics).totalsByUnit, { USD: 350 });
   });
 
   test('calculateSummary safely aggregates units named like Object prototype keys', () => {
@@ -43,27 +45,26 @@ describe('Web Dashboard Metrics Utilities', () => {
     ]);
 
     const result = calculateSummary(metrics);
-    expect(result.totalMetrics).toBe(8);
-    expect(result.healthStatus).toBe('WARNING');
-    expect(Object.keys(result.totalsByUnit).sort()).toEqual([...units].sort());
+    assert.equal(result.totalMetrics, 8);
+    assert.equal(result.healthStatus, 'WARNING');
+    assert.deepEqual(Object.keys(result.totalsByUnit).sort(), [...units].sort());
     for (const unit of units) {
-      expect(Object.prototype.hasOwnProperty.call(result.totalsByUnit, unit)).toBe(true);
-      expect(result.totalsByUnit[unit]).toBe(5);
+      assert.equal(Object.prototype.hasOwnProperty.call(result.totalsByUnit, unit), true);
+      assert.equal(result.totalsByUnit[unit], 5);
     }
-    expect(Object.getPrototypeOf(result.totalsByUnit)).toBe(Object.prototype);
+    assert.equal(Object.getPrototypeOf(result.totalsByUnit), Object.prototype);
   });
 
   test('calculateSummary should return a healthy empty summary for an empty list', () => {
-    expect(calculateSummary([])).toEqual({
+    assert.deepEqual(calculateSummary([]), {
       totalMetrics: 0,
       totalsByUnit: {},
       healthStatus: 'HEALTHY'
     });
   });
 
-  test.each([Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY])(
-    'calculateSummary should reject non-finite values (%s)',
-    (value) => {
+  for (const value of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+    test(`calculateSummary should reject non-finite values (${value})`, () => {
       const invalidMetric: DashboardMetric = {
         id: 'invalid',
         title: 'Invalid metric',
@@ -71,9 +72,9 @@ describe('Web Dashboard Metrics Utilities', () => {
         unit: 'units',
         status: 'optimal'
       };
-      expect(() => calculateSummary([invalidMetric])).toThrow(RangeError);
-    }
-  );
+      assert.throws(() => calculateSummary([invalidMetric]), RangeError);
+    });
+  }
 
   test('calculateSummary should reject missing or whitespace-only units', () => {
     const invalidMetric: DashboardMetric = {
@@ -83,7 +84,7 @@ describe('Web Dashboard Metrics Utilities', () => {
       unit: '   ',
       status: 'optimal'
     };
-    expect(() => calculateSummary([invalidMetric])).toThrow(RangeError);
+    assert.throws(() => calculateSummary([invalidMetric]), RangeError);
   });
 
   test('calculateSummary should reject overflow while aggregating a shared unit', () => {
@@ -91,8 +92,8 @@ describe('Web Dashboard Metrics Utilities', () => {
       { id: 'large-a', title: 'Large A', value: Number.MAX_VALUE, unit: 'units', status: 'optimal' },
       { id: 'large-b', title: 'Large B', value: Number.MAX_VALUE, unit: 'units', status: 'optimal' }
     ];
-    expect(() => calculateSummary(metrics)).toThrow(RangeError);
-    expect(() => calculateSummary(metrics)).toThrow('Aggregated total for unit "units" must remain finite');
+    assert.throws(() => calculateSummary(metrics), RangeError);
+    assert.throws(() => calculateSummary(metrics), /Aggregated total for unit "units" must remain finite/);
   });
 
   test('calculateSummary rejects invalid runtime metric rows and missing units', () => {
@@ -109,14 +110,14 @@ describe('Web Dashboard Metrics Utilities', () => {
       { ...base, value: '10' }
     ];
     for (const row of invalidRows) {
-      expect(() => calculateSummary([row as DashboardMetric])).toThrow(RangeError);
-      expect(() => calculateHealthScore([row as DashboardMetric])).toThrow(RangeError);
+      assert.throws(() => calculateSummary([row as DashboardMetric]), RangeError);
+      assert.throws(() => calculateHealthScore([row as DashboardMetric]), RangeError);
     }
   });
 
   test('calculateSummary rejects non-array metric collections', () => {
-    expect(() => calculateSummary(null as unknown as DashboardMetric[])).toThrow(TypeError);
-    expect(() => calculateHealthScore({} as unknown as DashboardMetric[])).toThrow(TypeError);
+    assert.throws(() => calculateSummary(null as unknown as DashboardMetric[]), TypeError);
+    assert.throws(() => calculateHealthScore({} as unknown as DashboardMetric[]), TypeError);
   });
 
   test('calculateSummary should reject unsupported runtime statuses', () => {
@@ -128,10 +129,8 @@ describe('Web Dashboard Metrics Utilities', () => {
       status: 'unknown'
     } as unknown as DashboardMetric;
 
-    expect(() => calculateSummary([invalidMetric])).toThrow(RangeError);
-    expect(() => calculateSummary([invalidMetric])).toThrow(
-      'Metric "invalid-status" has an unsupported status'
-    );
+    assert.throws(() => calculateSummary([invalidMetric]), RangeError);
+    assert.throws(() => calculateSummary([invalidMetric]), /Metric "invalid-status" has an unsupported status/);
   });
 
 });
