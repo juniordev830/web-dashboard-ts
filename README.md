@@ -5,7 +5,7 @@ Biblioteca/utilitário TypeScript de linha de comando para formatar e resumir m�
 ## Tecnologias
 
 - TypeScript e Node.js
-- Jest / ts-jest para testes
+- Executor de testes nativo do Node.js
 - TypeScript Compiler para validação/build
 - Sem dependências adicionais para análise de tendências
 
@@ -82,7 +82,7 @@ console.log(trends[0]);
 
 ```bash
 npm run build
-npm test -- --runInBand
+npm test
 ```
 
 A suíte cobre sumários, unidades com nomes especiais, valores não finitos, overflow, séries fora de ordem, métricas isoladas, baseline zero, timestamps e concorrência de identificadores. O workflow em `.github/workflows/ci.yml` executa `npm ci`, auditoria de dependências, build e testes em mudanças direcionadas à `main`.
@@ -123,7 +123,7 @@ console.log(report.alerts[0].level); // warning
 
 Se houver uma regra para uma métrica sem observação, a situação será **`missing`**, nunca `ok`. O retorno inclui contadores de regras `ok`, `warning`, `critical` e `missing`. Execute `npm run dev` para ver um exemplo.
 
-**Limitações:** não existem notificações, persistência nem coletas em tempo real; valores e limites são fictícios e precisam ser escolhidos conforme cada aplicação. Testes Jest validam condições de fronteira, dados ausentes, valores inválidos e imutabilidade.
+**Limitações:** não existem notificações, persistência nem coletas em tempo real; valores e limites são fictícios e precisam ser escolhidos conforme cada aplicação. Os testes validam condições de fronteira, dados ausentes, valores inválidos e imutabilidade.
 
 ## Agregação por janelas de tempo UTC
 

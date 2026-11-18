@@ -1,4 +1,5 @@
 import { MetricSample, parseTimestamp } from './trends';
+import { interpolateFinite } from './statistics';
 
 export interface MetricWindow {
   metricId: string;
@@ -56,7 +57,7 @@ export function bucketMetricSamples(
       });
     } else {
       const count = group.samples + 1;
-      group.mean = group.mean * (group.samples / count) + sample.value / count;
+      group.mean = interpolateFinite(group.mean, sample.value, 1 / count);
       group.samples = count;
       group.min = Math.min(group.min, sample.value);
       group.max = Math.max(group.max, sample.value);
