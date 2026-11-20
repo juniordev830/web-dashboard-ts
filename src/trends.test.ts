@@ -65,6 +65,13 @@ describe('calculateMetricTrends', () => {
     }
   });
 
+  test('rejects non-array input and oversized telemetry batches', () => {
+    assert.throws(() => calculateMetricTrends(null as unknown as MetricSample[]), TypeError);
+    assert.throws(() => calculateMetricTrends({} as unknown as MetricSample[]), TypeError);
+    const oversized = Array(100_001).fill(at(0, 1));
+    assert.throws(() => calculateMetricTrends(oversized), /At most 100000 samples/);
+  });
+
   test('rejects invalid ids and non-finite numbers', () => {
     assert.throws(() => calculateMetricTrends([at(0, 1, '  ')]), RangeError);
     for (const value of [NaN, Infinity, -Infinity]) {

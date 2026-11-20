@@ -41,6 +41,13 @@ export function parseTimestamp(timestamp: string): number {
  * Percentage change uses the absolute value of the first observation as its base.
  */
 export function calculateMetricTrends(samples: readonly MetricSample[]): MetricTrend[] {
+  if (!Array.isArray(samples)) {
+    throw new TypeError('Samples must be an array');
+  }
+  if (samples.length > 100_000) {
+    throw new RangeError('At most 100000 samples');
+  }
+
   const groups = new Map<string, TimedSample[]>();
   const observed = new Map<string, Set<number>>();
 
