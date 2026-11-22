@@ -64,6 +64,9 @@ export function evaluateMetricAlerts(
   if (!Array.isArray(metrics) || !Array.isArray(rules)) {
     throw new TypeError('Metrics and rules must be arrays');
   }
+  if (metrics.length > 100_000 || rules.length > 1_000) {
+    throw new RangeError('At most 100000 metrics and 1000 alert rules are supported');
+  }
   const observed = new Map<string, number>();
   for (const metric of metrics) {
     const id = identifier(metric?.id, 'Metric id');
