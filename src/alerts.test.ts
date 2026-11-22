@@ -75,6 +75,15 @@ describe('metric threshold alerts', () => {
     assert.throws(() => evaluateMetricAlerts(null as unknown as DashboardMetric[], [rule]), TypeError);
   });
 
+  test('rejects invisible and terminal-control characters in metric identifiers', () => {
+    const rule = { metricId: 'latency', direction: 'above' as const, warning: 10, critical: 20 };
+    for (const id of ['latency\nnew-line', 'latency\u007f', 'latency\u202e', 'latency\u2066']) {
+      assert.throws(() => evaluateMetricAlerts([metric(id, 15)], [rule]), RangeError);
+      assert.throws(() => evaluateMetricAlerts([metric('latency', 15)], [{ ...rule, metricId: id }]), RangeError);
+    }
+    assert.equal(evaluateMetricAlerts([metric('latency', 15)], [rule]).alerts[0].level, 'warning');
+  });
+
   test('prototype-like ids are handled safely without object key collisions', () => {
     const rows = [metric('__proto__', 50), metric('constructor', 1)];
     const rules: MetricAlertRule[] = [
