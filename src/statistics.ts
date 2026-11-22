@@ -46,6 +46,9 @@ export function summarizeMetricDistributions(
   if (!Array.isArray(observations)) {
     throw new TypeError('Observations must be an array');
   }
+  if (observations.length > 100_000) {
+    throw new RangeError('At most 100000 observations are supported');
+  }
 
   const groups = new Map<string, number[]>();
   for (const observation of observations) {
