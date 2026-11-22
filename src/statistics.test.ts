@@ -82,3 +82,10 @@ describe('summarizeMetricDistributions', () => {
     assert.equal(result.p95, Number.MIN_VALUE);
   });
 });
+
+
+test('rejects oversized batches before grouping observations', () => {
+  const one = { metricId: 'latency', value: 1 };
+  assert.throws(() => summarizeMetricDistributions(Array(100001).fill(one)), RangeError);
+  assert.equal(summarizeMetricDistributions([one]).length, 1);
+});
