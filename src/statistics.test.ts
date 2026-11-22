@@ -82,3 +82,18 @@ describe('summarizeMetricDistributions', () => {
     assert.equal(result.p95, Number.MIN_VALUE);
   });
 });
+
+
+test('rejects oversized batches before grouping observations', () => {
+  const one = { metricId: 'latency', value: 1 };
+  assert.throws(() => summarizeMetricDistributions(Array(100001).fill(one)), RangeError);
+  assert.equal(summarizeMetricDistributions([one]).length, 1);
+});
+
+
+test('rejects oversized and control-character metric identifiers', () => {
+  for (const metricId of ['a'.repeat(121), 'metric\nother', 'metric\u202e']) {
+    assert.throws(() => summarizeMetricDistributions([{ metricId, value: 1 }]), RangeError);
+  }
+  assert.equal(summarizeMetricDistributions([{ metricId: 'cpu', value: 1 }])[0].metricId, 'cpu');
+});

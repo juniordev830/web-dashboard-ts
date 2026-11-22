@@ -31,6 +31,9 @@ function identifier(value: unknown, name: string): string {
   if (typeof value !== 'string' || !value.trim() || value.length > 120) {
     throw new RangeError(`${name} must be a non-empty string up to 120 characters`);
   }
+  if (/[\u0000-\u001F\u007F\u202A-\u202E\u2066-\u2069]/u.test(value)) {
+    throw new RangeError(`${name} contains control characters`);
+  }
   return value.trim();
 }
 
@@ -60,6 +63,9 @@ export function evaluateMetricAlerts(
 ): AlertReport {
   if (!Array.isArray(metrics) || !Array.isArray(rules)) {
     throw new TypeError('Metrics and rules must be arrays');
+  }
+  if (metrics.length > 100_000 || rules.length > 1_000) {
+    throw new RangeError('At most 100000 metrics and 1000 alert rules are supported');
   }
   const observed = new Map<string, number>();
   for (const metric of metrics) {
