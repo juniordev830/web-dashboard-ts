@@ -31,6 +31,9 @@ function identifier(value: unknown, name: string): string {
   if (typeof value !== 'string' || !value.trim() || value.length > 120) {
     throw new RangeError(`${name} must be a non-empty string up to 120 characters`);
   }
+  if (/[\u0000-\u001F\u007F\u202A-\u202E\u2066-\u2069]/u.test(value)) {
+    throw new RangeError(`${name} contains control characters`);
+  }
   return value.trim();
 }
 
