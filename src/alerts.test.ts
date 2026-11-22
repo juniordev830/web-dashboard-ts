@@ -95,3 +95,12 @@ describe('metric threshold alerts', () => {
     });
   });
 });
+
+
+test('rejects oversized alert evaluation input before scanning or allocating', () => {
+  const item = metric('latency', 1);
+  const rule: MetricAlertRule = { metricId: 'latency', direction: 'above', warning: 10, critical: 20 };
+  assert.throws(() => evaluateMetricAlerts(Array(100001).fill(item), [rule]), /100000/);
+  assert.throws(() => evaluateMetricAlerts([item], Array(1001).fill(rule)), /1000/);
+  assert.equal(evaluateMetricAlerts([item], [rule]).counts.ok, 1);
+});
