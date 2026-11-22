@@ -53,7 +53,8 @@ export function summarizeMetricDistributions(
   const groups = new Map<string, number[]>();
   for (const observation of observations) {
     if (!observation || typeof observation.metricId !== 'string' ||
-        !observation.metricId.trim()) {
+        !observation.metricId.trim() || observation.metricId.length > 120 ||
+        /[\u0000-\u001F\u007F\u202A-\u202E\u2066-\u2069]/u.test(observation.metricId)) {
       throw new RangeError('Observation metricId must be non-empty');
     }
     if (typeof observation.value !== 'number' || !Number.isFinite(observation.value)) {
