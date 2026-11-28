@@ -1,5 +1,7 @@
 # Dashboard Metrics Utilities (TypeScript)
 
+**Navegação** · [Tecnologias](#tecnologias) · [Instalação e comandos](#instalação-e-comandos) · [Funções disponíveis](#funções-disponíveis) · [Código e estudo](docs/ENGENHARIA_REVERSA.md)
+
 Biblioteca/utilitário TypeScript de linha de comando para formatar e resumir métricas e **analisar tendências temporais por métrica**. O projeto ainda não inclui uma interface web, API ou coleta de telemetria real.
 
 ## Tecnologias
@@ -46,7 +48,7 @@ Os percentis usam interpolação linear na posição `(n - 1) * p` e não repres
 
 ### `calculateSummary(metrics)`
 
-Agrupa valores por unidade, conta as métricas e retorna `healthStatus` conforme os estados `optimal`, `warning` e `critical`. IDs vazios, métricas malformadas, unidades ausentes, valores não numéricos e overflow são rejeitados com `RangeError`; coleções que não sejam arrays geram `TypeError`. A validação também se aplica a `calculateHealthScore(metrics)`. A agregação usa `Map`, inclusive para chaves especiais como `__proto__` e `constructor`.
+Agrupa valores por unidade, conta as métricas e retorna `healthStatus` como `HEALTHY`, `WARNING` ou `CRITICAL`, a partir dos estados de entrada `optimal`, `warning` e `critical`. IDs vazios, métricas malformadas, unidades ausentes, valores não numéricos e overflow são rejeitados com `RangeError`; coleções que não sejam arrays geram `TypeError`. A validação também se aplica a `calculateHealthScore(metrics)`. A agregação usa `Map`, inclusive para chaves especiais como `__proto__` e `constructor`.
 
 ### `calculateMetricTrends(samples)`
 
@@ -95,7 +97,21 @@ src/
   index.test.ts        # Testes do resumo
   trends.ts            # Análise temporal pura
   trends.test.ts       # Testes de tendências
+  statistics.ts        # Estatísticas descritivas
+  statistics.test.ts   # Testes de estatísticas
+  alerts.ts            # Avaliação de regras de alerta
+  alerts.test.ts       # Testes de alertas
+  windowed.ts          # Agregação temporal UTC
+  windowed.test.ts     # Testes de janelas
 ```
+
+## Pontuação de saúde e consumo da biblioteca
+
+`calculateHealthScore(metrics)` começa em 100 e subtrai a penalidade média por métrica: 15 pontos por estado de aviso e 50 por estado crítico. O resultado é arredondado e limitado inferiormente a zero. Uma lista vazia retorna 100 por convenção; isso não comprova disponibilidade de um serviço.
+
+Exemplo: três métricas, uma em aviso e duas ótimas, produzem pontuação 95 e estado global `WARNING`. O estado global prioriza qualquer crítico sobre qualquer aviso, independentemente da pontuação.
+
+Após `npm run build`, o ponto de entrada definido no pacote é `dist/index.js`. As funções de tendências e alertas ficam nos respectivos módulos; estatísticas e janelas UTC também são exportadas por `src/index.ts`. O comando `npm test` já compila o projeto antes de executar os testes. A pontuação não substitui SLA, SLO ou monitoramento de disponibilidade.
 
 ## Evolução planejada
 
@@ -142,3 +158,7 @@ const janelas = bucketMetricSamples([
 ## Validação e manutenção
 
 Para revisar alterações neste projeto, consulte o [guia técnico de validação](docs/GUIA_DE_VALIDACAO.md), com comandos, cenários de regressão e próximos incrementos.
+
+## Código e roteiro de estudo
+
+Quando uma janela vazia deve representar ausência de dados em vez de zero? O [guia de engenharia reversa](docs/ENGENHARIA_REVERSA.md) reúne o mapa dos módulos e uma pergunta técnica baseada no projeto.
