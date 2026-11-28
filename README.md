@@ -1,5 +1,7 @@
 # Dashboard Metrics Utilities (TypeScript)
 
+**Navegação** · [Tecnologias](#tecnologias) · [Instalação e comandos](#instalação-e-comandos) · [Funções disponíveis](#funções-disponíveis) · [Código e estudo](docs/ENGENHARIA_REVERSA.md)
+
 Biblioteca/utilitário TypeScript de linha de comando para formatar e resumir métricas e **analisar tendências temporais por métrica**. O projeto ainda não inclui uma interface web, API ou coleta de telemetria real.
 
 ## Tecnologias
@@ -156,3 +158,7 @@ const janelas = bucketMetricSamples([
 ## Validação e manutenção
 
 Para revisar alterações neste projeto, consulte o [guia técnico de validação](docs/GUIA_DE_VALIDACAO.md), com comandos, cenários de regressão e próximos incrementos.
+
+## Código e roteiro de estudo
+
+Quando uma janela vazia deve representar ausência de dados em vez de zero? O [guia de engenharia reversa](docs/ENGENHARIA_REVERSA.md) reúne o mapa dos módulos e uma pergunta técnica baseada no projeto.
